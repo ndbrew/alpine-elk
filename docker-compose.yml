@@ -10,5 +10,22 @@ services:
       - "9300:9300"
     volumes:
       - es_data:/usr/share/elasticsearch/data
+  logstash:
+    build:
+      context: ./alpine-logstash
+      args:
+        LS_VERSION: ${LS_VERSION}
+        LS_HOME: ${LS_HOME}
+        LS_USER: ${LS_USER}
+        LS_UID: ${LS_UID}
+        PLUGINS: ${LS_PLUGINS}
+    command: logstash
+    volumes:
+      - ls_conf:${LS_CONF_MOUNT}
+    environment:
+      LS_SETTINGS_DIR: ${LS_CONF_MOUNT}
 volumes:
   es_data: {}
+  ls_conf:
+    external:
+      name: ${LS_EXT_VOL_NAME}
