@@ -20,12 +20,37 @@ services:
         LS_UID: ${LS_UID}
         PLUGINS: ${LS_PLUGINS}
     command: logstash
+    links: 
+      - elasticsearch
+    ports:
+      - 12201:12201/udp
     volumes:
       - ls_conf:${LS_CONF_MOUNT}
     environment:
       LS_SETTINGS_DIR: ${LS_CONF_MOUNT}
+  kibana:
+    build:
+      context: ./alpine-kibana
+      args:
+        KB_VERSION: ${KB_VERSION}
+        KB_HOME: ${KB_HOME}
+        KB_USER: ${KB_USER}
+        KB_UID: ${KB_UID}
+        PLUGINS: ${KB_PLUGINS}
+    command: kibana
+    ports:
+      - 5601:5601
+    links:
+      - elasticsearch
+    volumes:
+      - kb_conf:${KB_CONF_MOUNT}
+    environment:
+      KB_SETTINGS_DIR: ${KB_CONF_MOUNT}
 volumes:
   es_data: {}
+  kb_conf:
+    external:
+      name: ${LS_EXT_VOL_NAME}
   ls_conf:
     external:
       name: ${LS_EXT_VOL_NAME}
