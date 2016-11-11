@@ -14,20 +14,22 @@ services:
     build:
       context: ./alpine-logstash
       args:
-        LS_VERSION: ${LS_VERSION}
-        LS_HOME: ${LS_HOME}
-        LS_USER: ${LS_USER}
-        LS_UID: ${LS_UID}
-        PLUGINS: ${LS_PLUGINS}
+        LS_VERSION: 5.0.0
+        LS_HOME: /opt/logstash
+        LS_USER: logstash
+        LS_UID: 996
+        LS_PLUGINS:
+        LS_XMX: -Xmx256m
+        LS_XMS: -Xms256m
     command: logstash
-    links: 
+    links:
       - elasticsearch
-    ports:
-      - 12201:12201/udp
+    #ports:
+    #  - "514:514/udp"
     volumes:
-      - ls_conf:${LS_CONF_MOUNT}
-    environment:
-      LS_SETTINGS_DIR: ${LS_CONF_MOUNT}
+      - ls_conf:${LS_HOME}/conf.d
+    #environment:
+    #  LS_SETTINGS_DIR:
   kibana:
     build:
       context: ./alpine-kibana
@@ -51,6 +53,4 @@ volumes:
   kb_conf:
     external:
       name: ${LS_EXT_VOL_NAME}
-  ls_conf:
-    external:
-      name: ${LS_EXT_VOL_NAME}
+  ls_conf: {}

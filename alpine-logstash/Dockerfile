@@ -9,7 +9,7 @@ ARG LS_HOME=/opt/logstash
 ARG LS_USER=logstash
 ARG LS_UID=998
 
-# Install logstash
+# Install
 RUN apk add --no-cache --virtual build_deps ca-certificates curl \
   && apk add --no-cache libzmq \
   && mkdir -p /usr/local/lib \
@@ -21,19 +21,30 @@ RUN apk add --no-cache --virtual build_deps ca-certificates curl \
   && rm -rf logstash-$LS_VERSION.tar.gz \
   && mv logstash-$LS_VERSION $LS_HOME \
   && adduser -s /sbin/nologin -D -h $LS_HOME -H -u $LS_UID -g $LS_UID $LS_USER \
+  && mkdir $LS_HOME/plugins \
+  && mkdir $LS_HOME/logs \
   && chown $LS_USER:$LS_USER -R $LS_HOME/ \
-  && rm -rf $LS_HOME/config \
   && apk del build_deps
 
-ARG PLUGINS=""
+ARG LS_PLUGINS=""
 
-# Configure Logstash
+# Configure Default Settings
+ARG LS_XMS=-Xms256m
+ARG LS_XMX=-Xmx256m
+
 ENV PATH=$LS_HOME/bin:$PATH \
   LS_SETTINGS_DIR=$LS_HOME/config
-COPY config $LS_SETTINGS_DIR
-RUN chown $LS_USER:$LS_USER -R $LS_SETTINGS_DIR
+RUN sed -i "s/^-Xms.*/${LS_XMS}/" $LS_SETTINGS_DIR/jvm.options \
+  && sed -i "s/^-Xmx.*/${LS_XMX}/" $LS_SETTINGS_DIR/jvm.options \
+  && sed -i "/path.config:/c\path.config: $LS_HOME/conf.d" $LS_SETTINGS_DIR/logstash.yml
+
+# Custom Settings
+COPY config $LS_HOME/config/
+COPY conf.d $LS_HOME/conf.d/
+RUN chown $LS_USER:$LS_USER -R $LS_HOME/conf.d $LS_HOME/config
 
 USER $LS_USER
+
 # Install Plugins
 RUN for plugin in $PLUGINS; do \
 $LS_HOME/bin/logstash-plugin install $plugin; \
