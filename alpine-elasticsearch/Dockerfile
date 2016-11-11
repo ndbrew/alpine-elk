@@ -1,29 +1,47 @@
 FROM openjdk:8u92-jre-alpine
+MAINTAINER Nathan Brewer
 
-ENV ELASTICSEARCH_VERSION 5.0.0
+# This layer as it will be re-used in the other ELK stack images
+RUN apk add --no-cache bash
 
-# Install elasticsearch
+ARG ES_VERSION=5.0.0
+ARG ES_HOME=/opt/elasticsearch
+ARG ES_USER=elasticsearch
+ARG ES_UID=998
+
+# Install
 RUN apk add --no-cache --virtual build_deps ca-certificates curl \
-  && apk add --no-cache --virtual app_deps bash su-exec \
   && mkdir -p /opt \
   && cd /tmp \
-  && curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$ELASTICSEARCH_VERSION.tar.gz > elasticsearch-$ELASTICSEARCH_VERSION.tar.gz \
-  && tar -xzf elasticsearch-$ELASTICSEARCH_VERSION.tar.gz \
-  && rm -rf elasticsearch-$ELASTICSEARCH_VERSION.tar.gz \
-  && mv elasticsearch-$ELASTICSEARCH_VERSION /opt/elasticsearch \
-  && rm -rf /opt/elasticsearch/config \
-  && mkdir -p /volumes/elasticsearch \
+  && curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$ES_VERSION.tar.gz > elasticsearch-$ES_VERSION.tar.gz \
+  && tar -xzf elasticsearch-$ES_VERSION.tar.gz \
+  && rm -rf elasticsearch-$ES_VERSION.tar.gz \
+  && mv elasticsearch-$ES_VERSION $ES_HOME \
+  && adduser -s /sbin/nologin -D -h $ES_HOME -H -u $ES_UID $ES_USER \
+  && mkdir -p $ES_HOME/plugins $ES_HOME/logs $ES_HOME/data \
+  && chown $ES_USER:$ES_USER -R $ES_HOME/ \
   && apk del build_deps
 
-WORKDIR /opt/elasticsearch
-RUN adduser -s /sbin/nologin -D -h /opt/elasticsearch -H elasticsearch
+ARG ES_PLUGINS=""
 
-ENV PATH $PATH:/opt/elasticsearch/bin
+# Configure Default Settings
+ARG ES_XMS=-Xms256m
+ARG ES_XMX=-Xmx256m
 
-COPY config /usr/local/share/elasticsearch/config
-COPY docker-entrypoint.sh /
+ENV PATH=$ES_HOME/bin:$PATH \
+  ES_SETTINGS_DIR=$ES_HOME/config
+RUN sed -i "s/^-Xms.*/${ES_XMS}/" $ES_SETTINGS_DIR/jvm.options \
+  && sed -i "s/^-Xmx.*/${ES_XMX}/" $ES_SETTINGS_DIR/jvm.options
 
-VOLUME /volumes/elasticsearch
-EXPOSE 9200 9300
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Custom Settings
+COPY config $LS_HOME/config/
+RUN chown $ES_USER:$ES_USER -R $ES_HOME/config
+
+USER $ES_USER
+
+# Install Plugins
+RUN for plugin in $ES_PLUGINS; do \
+$ES_HOME/bin/logstash-plugin install $plugin; \
+done
+
 CMD ["elasticsearch"]
