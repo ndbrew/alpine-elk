@@ -4,12 +4,19 @@ services:
   elasticsearch:
     build:
       context: ./alpine-elasticsearch
+      args:
+        ES_VERSION: 5.0.0
+        ES_HOME: /opt/elasticsearch
+        ES_USER: elasticsearch
+        ES_UID: 998
+        ES_PLUGINS:
+        ES_XMX: -Xmx256m
+        ES_XMS: -Xms256m
     command: elasticsearch
     ports:
       - "9200:9200"
-      - "9300:9300"
     volumes:
-      - es_data:/usr/share/elasticsearch/data
+      - es_data:/opt/elasticsearch/data
   logstash:
     build:
       context: ./alpine-logstash
