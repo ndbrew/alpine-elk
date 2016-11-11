@@ -1,13 +1,28 @@
 version: '2'
 
 services:
+  config-editor:
+    build:
+      context: ./config-editor
+      args:
+        ES_UID: ${ES_UID}
+        ES_USER: ${ES_USER}
+        LS_UID: ${LS_UID}
+        LS_USER: ${LS_USER}
+        KB_UID: ${KB_UID}
+        KB_USER: ${KB_USER}
+    command: /bin/true
+    volumes:
+      - es_data:/volumes/elasticsearch/es_data
+      - ls_config:/volumes/logstash/config
+      - ls_confd:/volumes/logstash/conf.d
+      - kb_config:/volumes/kibana/config
   elasticsearch:
     build:
       context: ./alpine-elasticsearch
     command: elasticsearch
     ports:
       - "9200:9200"
-      - "9300:9300"
     volumes:
       - es_data:/usr/share/elasticsearch/data
   logstash:
@@ -17,7 +32,7 @@ services:
         LS_VERSION: 5.0.0
         LS_HOME: /opt/logstash
         LS_USER: logstash
-        LS_UID: 996
+        LS_UID: ${LS_UID}
         LS_PLUGINS:
         LS_XMX: -Xmx256m
         LS_XMS: -Xms256m
@@ -27,7 +42,8 @@ services:
     #ports:
     #  - "514:514/udp"
     volumes:
-      - ls_conf:${LS_HOME}/conf.d
+      - ls_confd:${LS_HOME}/conf.d
+      - ls_config:${LS_HOME}/config
     #environment:
     #  LS_SETTINGS_DIR:
   kibana:
@@ -45,12 +61,11 @@ services:
     links:
       - elasticsearch
     volumes:
-      - kb_conf:${KB_CONF_MOUNT}
+      - kb_config:${KB_CONF_MOUNT}
     environment:
       KB_SETTINGS_DIR: ${KB_CONF_MOUNT}
 volumes:
   es_data: {}
-  kb_conf:
-    external:
-      name: ${LS_EXT_VOL_NAME}
-  ls_conf: {}
+  kb_config: {}
+  ls_confd: {}
+  ls_config: {}
