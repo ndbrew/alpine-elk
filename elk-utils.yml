@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+  config-editor:
+    build:
+      context: ./config-editor
+      args:
+        INSTALL_PKGS: vim git
+    command: "/bin/sh"
+    volumes:
+      - es_data:/volumes/elasticsearch/es_data
+      - ls_config:/volumes/logstash/config
+      - ls_confd:/volumes/logstash/conf.d
+      - kb_config:/volumes/kibana/config

@@ -20,7 +20,7 @@ RUN apk add --no-cache --virtual build_deps ca-certificates curl \
   && tar -xzf logstash-$LS_VERSION.tar.gz \
   && rm -rf logstash-$LS_VERSION.tar.gz \
   && mv logstash-$LS_VERSION $LS_HOME \
-  && adduser -s /sbin/nologin -D -h $LS_HOME -H -u $LS_UID -g $LS_UID $LS_USER \
+  && adduser -s /sbin/nologin -D -h $LS_HOME -H -u $LS_UID $LS_USER \
   && mkdir $LS_HOME/plugins \
   && mkdir $LS_HOME/logs \
   && chown $LS_USER:$LS_USER -R $LS_HOME/ \
