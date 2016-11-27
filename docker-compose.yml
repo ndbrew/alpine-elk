@@ -1,22 +1,6 @@
 version: '2'
 
 services:
-  config-editor:
-    build:
-      context: ./config-editor
-      args:
-        ES_UID: ${ES_UID}
-        ES_USER: ${ES_USER}
-        LS_UID: ${LS_UID}
-        LS_USER: ${LS_USER}
-        KB_UID: ${KB_UID}
-        KB_USER: ${KB_USER}
-    command: /bin/true
-    volumes:
-      - es_data:/volumes/elasticsearch/es_data
-      - ls_config:/volumes/logstash/config
-      - ls_confd:/volumes/logstash/conf.d
-      - kb_config:/volumes/kibana/config
   elasticsearch:
     build:
       context: ./alpine-elasticsearch
