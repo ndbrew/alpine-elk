@@ -34,7 +34,7 @@ RUN sed -i "s/^-Xms.*/${ES_XMS}/" $ES_SETTINGS_DIR/jvm.options \
   && sed -i "s/^-Xmx.*/${ES_XMX}/" $ES_SETTINGS_DIR/jvm.options
 
 # Custom Settings
-COPY config $LS_HOME/config/
+COPY config $ES_HOME/config/
 RUN chown $ES_USER:$ES_USER -R $ES_HOME/config
 
 USER $ES_USER

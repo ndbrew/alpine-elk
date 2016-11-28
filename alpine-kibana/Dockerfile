@@ -24,7 +24,7 @@ RUN apk add --no-cache --virtual build_deps ca-certificates curl \
   && ln -s $(which node) $KB_HOME/node/bin/ \
   && apk del build_deps
 
-ARG PLUGINS="x-pack"
+ARG PLUGINS=""
 
 # Configure Kibana
 ENV PATH=$KB_HOME/bin:$PATH \
